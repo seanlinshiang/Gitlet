@@ -53,6 +53,11 @@ public class Repository {
         currentBranch = readCurrentBranch();
     }
 
+    public static void saveRepository() {
+        saveHEAD();
+        saveCurrentBranch();
+        saveBranch(currentBranch, HEAD);
+    }
     public static void init() {
         /** if the CWD is initialized, exit with error */
         if (isInitialized()) {
@@ -69,10 +74,8 @@ public class Repository {
         Commit initialCommit = new Commit("initial commit");
         initialCommit.saveCommit();
         HEAD = initialCommit.getID();
-        saveHEAD();
         currentBranch = "master";
-        saveCurrentBranch();
-        saveBranch(currentBranch, HEAD);
+        saveRepository();
     }
     /** Returns whether the CWD is initialized */
     public static boolean isInitialized() {
@@ -147,9 +150,7 @@ public class Repository {
         HEAD = newCommit.getID();
         StagingArea.clearStage(false);
         StagingArea.clearStage(true);
-        saveBranch(currentBranch, HEAD);
-        saveHEAD();
-        saveCurrentBranch();
+        saveRepository();
         newCommit.saveCommit();
         StagingArea.saveStage();
         StagingArea.saveStageForRemoval();
@@ -270,7 +271,8 @@ public class Repository {
         StagingArea.readStage();
         StagingArea.readStageForRemoval();
         Commit currentCommit = Commit.readCommit(HEAD);
-        String newBranch = readBranch(args[2]);
+        String newBranchName = args[2];
+        String newBranch = readBranch(newBranchName);
         Commit newBranchCommit = Commit.readCommit(newBranch);
         for (String newBranchFile: newBranchCommit.getMetadata().keySet()) {
             if (!currentCommit.metadataContains(newBranchFile)) {
@@ -295,9 +297,8 @@ public class Repository {
             }
         }
         HEAD = newBranch;
-        currentBranch = args[2];
-        saveHEAD();
-        saveCurrentBranch();
+        currentBranch = newBranchName;
+        saveRepository();
         StagingArea.clearStage(true);
         StagingArea.clearStage(false);
         StagingArea.saveStage();
@@ -400,8 +401,7 @@ public class Repository {
         }
         // moves the current branch's head to that commit node
         HEAD = resetCommit.getID();
-        saveHEAD();
-        saveBranch(currentBranch, HEAD);
+        saveRepository();
         StagingArea.clearStage(true);
         StagingArea.clearStage(false);
         StagingArea.saveStage();
